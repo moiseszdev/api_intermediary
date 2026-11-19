@@ -32,3 +32,9 @@ test('aceita envelope PascalCase da instalação real e normaliza a saída', asy
   const f = async (input: RequestInfo | URL) => String(input).endsWith('/auth/token') ? json({ accessToken: 'a', refreshToken: 'r', expiresIn: 3600 }) : json({ Erros: [], ListaObjetos: [{ Identificador: '00A0000001' }] });
   const c = new BimerClient(options(f as typeof fetch)); const result = await c.getProduct('00A0000001'); assert.deepEqual(Object.keys(result), ['erros', 'listaObjetos']); assert.equal(result.listaObjetos.length, 1);
 });
+
+test('consulta estoque na rota documentada da empresa', async () => {
+  let requested = '';
+  const f = async (input: RequestInfo | URL) => { requested = String(input); return requested.endsWith('/auth/token') ? json({ accessToken: 'a', refreshToken: 'r', expiresIn: 3600 }) : json({ Erros: [], ListaObjetos: [{ QuantidadeDisponivel: 5 }] }); };
+  const c = new BimerClient(options(f as typeof fetch)); const result = await c.getStock(4, '00A0000001'); assert.match(requested, /\/api\/4\/produtos\/00A0000001\/estoque$/); assert.equal(result.listaObjetos.length, 1);
+});

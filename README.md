@@ -17,6 +17,13 @@ Host: localhost:3000
 x-api-key: SUA_CHAVE
 ```
 
+Estoque é consultado separadamente e somente nas empresas configuradas em `STOCK_COMPANY_CODES` (por padrão `1,4`):
+
+```http
+GET /api/produtos/00A0000001/estoques HTTP/1.1
+x-api-key: SUA_CHAVE
+```
+
 ```json
 {
   "erros": [],

@@ -54,5 +54,6 @@ export class BimerClient {
   }
   getProduct(id: string) { return this.getWithRetry(`/api/produtos/${encodeURIComponent(id)}`); }
   getProductByCode(code: string) { return this.getWithRetry(`/api/produtos?codigo=${encodeURIComponent(code)}`); }
+  getStock(companyCode: number, productId: string) { return this.getWithRetry(`/api/${companyCode}/produtos/${encodeURIComponent(productId)}/estoque`); }
   getChanged(cursor: string, limit: number) { return this.getWithRetry(`/api/produtos/versaoRegistro?versaoRegistro=${encodeURIComponent(cursor)}&itensPorPagina=${limit}`); }
 }

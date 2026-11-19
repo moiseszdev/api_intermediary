@@ -1,0 +1,30 @@
+services:
+  bimer-api:
+    build:
+      context: .
+    container_name: bimer-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: "3000"
+      STATE_DB_PATH: /app/data/integration.db
+    ports:
+      - "3000:3000"
+    volumes:
+      - bimer-state:/app/data
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/health/live').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  bimer-state:

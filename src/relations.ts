@@ -27,7 +27,8 @@ export class RelationsRepository {
     for (const row of result.recordset) {
       const key = `${row.Principal}|${row.Tipo}|${row.identificador}`;
       let item = grouped.get(key); if (!item) { item = { identificador: row.identificador, nome: row.nome, codigosChamada: [] }; grouped.set(key, item); (row.Tipo === 'C' ? out.get(row.Principal)!.produtosComplementares : out.get(row.Principal)!.produtosEquivalentes).push(item); }
-      if (row.codigo != null && !item.codigosChamada.includes(String(row.codigo))) item.codigosChamada.push(String(row.codigo));
+      const codigo = row.codigo == null ? null : String(row.codigo).trimEnd();
+      if (codigo && !item.codigosChamada.includes(codigo)) item.codigosChamada.push(codigo);
     }
     return out;
   }

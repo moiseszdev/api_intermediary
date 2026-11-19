@@ -11,6 +11,7 @@ const schema = z.object({
   BIMER_EXPIRES_IN_UNIT: z.enum(['seconds', 'milliseconds']).default('seconds'),
   ERP_SQL_CONNECTION_STRING: z.string().min(1),
   ERP_CODE_TYPE_ID: z.string().min(1).default('00A0000002'),
+  STOCK_COMPANY_CODES: z.string().regex(/^\d+(,\d+)*$/).default('1,4'),
   API_KEYS_SHA256: z.string().min(1),
   ALLOWED_ORIGINS: z.string().default(''),
   STATE_DB_PATH: z.string().default('./data/integration.db'),
