@@ -39,10 +39,12 @@ export class BimerClient {
     const r = await this.fetchFn(new URL(path, this.o.baseUrl), { headers: { authorization: `${token.tokenType || 'Bearer'} ${token.accessToken}` }, signal: AbortSignal.timeout(this.o.timeoutMs) });
     if (r.status === 401 && retry401) { this.token = undefined; await this.ensureToken(true); return this.raw(path, false); }
     if (!r.ok) throw new OriginError(`Falha Bimer (${r.status})`, r.status >= 500 || r.status === 429 ? 503 : 502, r.status >= 500 || r.status === 429);
-    const envelope = safeJson.parse(await r.text()) as { erros?: unknown[]; listaObjetos?: unknown[] };
-    if (envelope.erros?.length) throw new BusinessError(envelope.erros);
-    if (!Array.isArray(envelope.listaObjetos)) throw new OriginError('Envelope Bimer inválido');
-    return envelope;
+    const raw = safeJson.parse(await r.text()) as { erros?: unknown[]; listaObjetos?: unknown[]; Erros?: unknown[]; ListaObjetos?: unknown[] };
+    const erros = raw.erros ?? raw.Erros;
+    const listaObjetos = raw.listaObjetos ?? raw.ListaObjetos;
+    if (erros?.length) throw new BusinessError(erros);
+    if (!Array.isArray(listaObjetos)) throw new OriginError('Envelope Bimer inválido');
+    return { erros: erros ?? [], listaObjetos };
   }
   async getWithRetry(path: string): Promise<any> {
     for (let attempt = 0; ; attempt++) try { return await this.raw(path); } catch (e) {

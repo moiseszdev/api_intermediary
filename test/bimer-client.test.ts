@@ -27,3 +27,8 @@ test('erro de negócio em HTTP 200 não vira sucesso vazio', async () => {
   const f = async (input: RequestInfo | URL) => String(input).endsWith('/auth/token') ? json({ accessToken: 'a', refreshToken: 'r', expiresIn: 3600 }) : json({ erros: [{ mensagem: 'negado' }], listaObjetos: [] });
   const c = new BimerClient(options(f as typeof fetch)); await assert.rejects(c.getProduct('00A0000001'), /erros de negócio/);
 });
+
+test('aceita envelope PascalCase da instalação real e normaliza a saída', async () => {
+  const f = async (input: RequestInfo | URL) => String(input).endsWith('/auth/token') ? json({ accessToken: 'a', refreshToken: 'r', expiresIn: 3600 }) : json({ Erros: [], ListaObjetos: [{ Identificador: '00A0000001' }] });
+  const c = new BimerClient(options(f as typeof fetch)); const result = await c.getProduct('00A0000001'); assert.deepEqual(Object.keys(result), ['erros', 'listaObjetos']); assert.equal(result.listaObjetos.length, 1);
+});
