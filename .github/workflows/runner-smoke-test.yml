@@ -1,0 +1,36 @@
+name: Teste do runner
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    name: Validar runner sem deploy
+    runs-on:
+      - self-hosted
+      - linux
+    timeout-minutes: 10
+
+    steps:
+      - name: Exibir identificação do runner
+        run: |
+          echo "Host: $(hostname)"
+          echo "Usuário: $(whoami)"
+          echo "Sistema: $(uname -a)"
+
+      - name: Verificar ferramentas necessárias
+        run: |
+          git --version
+          docker --version
+          docker compose version
+          curl --version | head -n 1
+          docker info >/dev/null
+
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Validar o build Docker
+        run: docker build --tag bimer-integration-api:runner-smoke-test .
