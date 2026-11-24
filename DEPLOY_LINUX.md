@@ -133,3 +133,54 @@ docker compose logs --tail=100
 ```
 
 Não habilite `SYNC_CURSOR_SEMANTICS_CONFIRMED=true` até a paginação incremental ser validada. As consultas individuais e o estoque funcionam com a sincronização desativada.
+
+## 8. Deploy automático pelo GitHub Actions
+
+Use no servidor um usuário de deploy que seja dono da pasta do projeto e tenha permissão para executar Docker. Não use `root` no workflow.
+
+No servidor, gere uma chave dedicada para ele conseguir atualizar um repositório privado, se necessário:
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/github_repository -C bimer-api-deploy
+cat ~/.ssh/github_repository.pub
+```
+
+Cadastre a chave pública como **Deploy key**, somente leitura, em **GitHub > Settings > Deploy keys**. Depois configure o clone para usar SSH:
+
+```bash
+cd /opt/bimer-api
+git remote set-url origin git@github.com:moiseszdev/api_intermediary.git
+git config core.sshCommand 'ssh -i ~/.ssh/github_repository -o IdentitiesOnly=yes'
+git pull --ff-only origin main
+```
+
+Para o caminho inverso, GitHub Actions acessando o servidor, gere outra chave em uma máquina administrativa:
+
+```bash
+ssh-keygen -t ed25519 -f bimer_api_actions -C github-actions-bimer-api
+```
+
+Adicione o conteúdo de `bimer_api_actions.pub` ao `~/.ssh/authorized_keys` do usuário de deploy no servidor. Guarde a chave privada como secret do GitHub e não a copie para o projeto.
+
+Crie o environment **production** em **GitHub > Settings > Environments** e cadastre estes secrets:
+
+- `DEPLOY_HOST`: IP ou nome DNS do servidor.
+- `DEPLOY_PORT`: porta SSH, normalmente `22`.
+- `DEPLOY_USER`: usuário Linux de deploy.
+- `DEPLOY_PATH`: pasta do clone, por exemplo `/opt/bimer-api`.
+- `DEPLOY_SSH_KEY`: conteúdo completo da chave privada `bimer_api_actions`.
+- `DEPLOY_KNOWN_HOSTS`: saída validada de `ssh-keyscan -H servidor`.
+
+Antes do primeiro deploy automático, valide no servidor:
+
+```bash
+cd /opt/bimer-api
+test -f .env
+git pull --ff-only origin main
+docker compose config --quiet
+docker compose build --pull
+docker compose up -d
+curl -fsS http://127.0.0.1:3000/health/live
+```
+
+Depois disso, cada push na branch `main` faz testes, valida o build Docker e, se tudo passar, atualiza produção. O arquivo `.env` e o volume `bimer-state` não são substituídos pelo deploy.
