@@ -54,3 +54,33 @@ jobs:
 
       - name: Construir imagem
         run: docker build --tag bimer-integration-api:${{ github.sha }} .
+
+  deploy:
+    name: Deploy em produção
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: docker
+    environment: production
+
+    steps:
+      - name: Configurar acesso SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Atualizar aplicação no servidor
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          printf -v remote_command 'set -e; cd %q; git pull --ff-only origin main; docker compose build --pull; docker compose up -d --remove-orphans; for attempt in {1..12}; do curl -fsS http://127.0.0.1:3000/health/live && exit 0; sleep 5; done; docker compose logs --tail=100; exit 1' "$DEPLOY_PATH"
+          ssh -i ~/.ssh/deploy_key -p "${DEPLOY_PORT:-22}" "$DEPLOY_USER@$DEPLOY_HOST" "$remote_command"
