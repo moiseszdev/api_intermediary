@@ -43,6 +43,12 @@ Coloque o valor exibido no `.env`:
 API_KEYS_SHA256=HASH_EXIBIDO_PELO_COMANDO
 ```
 
+Comandos abaixo auxiliam a ver as chaves operacionais
+
+chave_api=$(openssl rand -hex 32)
+hash_api=$(printf '%s' "$chave_api" | sha256sum | cut -d ' ' -f1)
+printf 'Chave para o Swagger: %s\nAPI_KEYS_SHA256=%s\n' "$chave_api" "$hash_api"
+
 Guarde `$apiTestKey` na sessão do PowerShell: ele será enviado no header `x-api-key`. A API armazena somente seu hash.
 
 ## 3. Instalar e validar
