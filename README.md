@@ -17,10 +17,10 @@ Host: localhost:3000
 x-api-key: SUA_CHAVE
 ```
 
-Estoque é consultado separadamente e somente nas empresas configuradas em `STOCK_COMPANY_CODES` (por padrão `1,4`):
+Estoque é consultado separadamente, somente na empresa `1` e no setor autorizado `00A0000008`. A tabela de preço confirmada é código `01`, identificador `00A000001Q`:
 
 ```http
-GET /api/produtos/00A0000001/estoques HTTP/1.1
+GET /api/produtos/00A0000001/estoques?identificadorSetor=00A0000008 HTTP/1.1
 x-api-key: SUA_CHAVE
 ```
 

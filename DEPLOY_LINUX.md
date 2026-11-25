@@ -26,7 +26,10 @@ BIMER_USERNAME=usuario
 BIMER_PASSWORD=senha
 ERP_SQL_CONNECTION_STRING=Server=192.168.1.165;Database=BASE;User Id=USUARIO;Password=SENHA;Encrypt=true;TrustServerCertificate=true
 ERP_CODE_TYPE_ID=00A0000002
-STOCK_COMPANY_CODES=1,4
+STOCK_COMPANY_CODES=1
+STOCK_SECTOR_IDS=00A0000008
+PRICE_TABLE_CODE=01
+PRICE_TABLE_ID=00A000001Q
 API_KEYS_SHA256=HASH_SHA256_DA_CHAVE
 STATE_DB_PATH=/app/data/integration.db
 SYNC_INITIAL_CURSOR=
@@ -72,10 +75,10 @@ curl -fsS \
 ```bash
 curl -fsS \
   -H "x-api-key: $API_KEY" \
-  http://127.0.0.1:3000/api/produtos/00A00080BZ/estoques | jq
+  'http://127.0.0.1:3000/api/produtos/00A00080BZ/estoques?identificadorSetor=00A0000008' | jq
 ```
 
-O estoque deve conter apenas `codigoEmpresa` 1 e 4.
+O estoque deve conter apenas `codigoEmpresa` 1 e o setor solicitado.
 
 ## 5. Operação
 
