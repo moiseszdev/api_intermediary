@@ -21,5 +21,5 @@ test('OpenAPI publica todas as consultas autorizadas e nenhuma escrita de negóc
     if (!path.startsWith('/api/')) continue;
     assert.deepEqual(Object.keys(operations), ['get'], `método não permitido em ${path}`);
   }
-  assert.equal(spec.info.version, '1.1.0');
+  assert.equal(spec.info.version, '1.2.0');
 });

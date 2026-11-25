@@ -9,6 +9,8 @@ API Node.js/TypeScript que preserva o envelope e todos os campos retornados pelo
 3. Execute `npm install`, `npm test`, `npm run typecheck` e `npm start`.
 4. Swagger da intermediária: `http://localhost:3000/docs`.
 
+Contrato de leitura do parceiro: `docs/API_PARCEIRO.md`. A versão efetivamente implantada pode ser consultada em `GET /version`.
+
 Exemplo:
 
 ```http

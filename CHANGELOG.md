@@ -4,6 +4,8 @@ Todas as mudanças relevantes deste projeto são documentadas neste arquivo. O p
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-25
+
 ### Adicionado
 
 - Consultas de clientes por identificador, CPF/CNPJ, código externo, nome e código CRM.
@@ -24,5 +26,6 @@ Todas as mudanças relevantes deste projeto são documentadas neste arquivo. O p
 - Estoque restrito à empresa `1` e ao setor comercial explicitamente autorizado.
 - Documentação de implantação Linux e operação com Docker Compose.
 
-[Unreleased]: https://github.com/moiseszdev/api_intermediary/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/moiseszdev/api_intermediary/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/moiseszdev/api_intermediary/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/moiseszdev/api_intermediary/releases/tag/v1.1.0
