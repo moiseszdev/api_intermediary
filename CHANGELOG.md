@@ -8,6 +8,7 @@ Todas as mudanças relevantes deste projeto são documentadas neste arquivo. O p
 
 - Consultas de clientes por identificador, CPF/CNPJ, código externo, nome e código CRM.
 - Consultas de pedidos de venda por identificador e status, restritas à empresa `1`.
+- Consulta do preço de produto na empresa `1` e tabela `01` (`00A000001Q`).
 
 ## [1.1.0] - 2026-11-25
 

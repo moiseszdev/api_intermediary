@@ -71,6 +71,9 @@ export class BimerClient {
   getSalesOrders(filters: Record<string, string>) {
     return this.getWithRetry(`/api/venda/pedidos/status?${new URLSearchParams(filters)}`);
   }
+  getProductPrice(companyCode: number, productId: string, priceTableId: string) {
+    return this.getWithRetry(`/api/empresas/${companyCode}/produtos/${encodeURIComponent(productId)}/precos/${encodeURIComponent(priceTableId)}`);
+  }
   getStock(companyCode: number, productId: string, sectorId?: string) {
     const query = sectorId ? `?identificadorSetor=${encodeURIComponent(sectorId)}` : '';
     return this.getWithRetry(`/api/${companyCode}/produtos/${encodeURIComponent(productId)}/estoque${query}`);

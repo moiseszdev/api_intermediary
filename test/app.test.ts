@@ -33,3 +33,12 @@ test('pedido por identificador de outra empresa não é revelado', async () => {
     assert.deepEqual(await response.json(), { erros: [{ mensagem: 'Pedido não encontrado' }], listaObjetos: [] });
   });
 });
+
+test('preço usa empresa 1 e tabela configurada sem aceitar parâmetros do consumidor', async () => {
+  let args: unknown[] = [];
+  await withServer({ getProductPrice: async (...received: unknown[]) => { args = received; return { erros: [], listaObjetos: [{ Valor: 4970 }] }; } }, async baseUrl => {
+    const response = await fetch(`${baseUrl}/api/produtos/00A00080BZ/preco`, { headers: { 'x-api-key': apiKey } });
+    assert.equal(response.status, 200);
+    assert.deepEqual(args, [1, '00A00080BZ', '00A000001Q']);
+  });
+});

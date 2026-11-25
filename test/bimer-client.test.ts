@@ -63,3 +63,11 @@ test('consulta de pedidos envia empresa fixa e preserva paginação', async () =
   assert.equal(new URL(requested).pathname + new URL(requested).search, '/api/venda/pedidos/status?empresa=1&status=A&limite=25&pagina=1');
   assert.equal(result.paginacao.Pagina, 1);
 });
+
+test('consulta de preço usa empresa e tabela explícitas', async () => {
+  let requested = '';
+  const f = async (input: RequestInfo | URL) => { requested = String(input); return requested.endsWith('/auth/token') ? json({ accessToken: 'a', refreshToken: 'r', expiresIn: 3600 }) : json({ Erros: [], ListaObjetos: [{ Valor: 4970 }] }); };
+  const c = new BimerClient(options(f as typeof fetch));
+  await c.getProductPrice(1, '00A00080BZ', '00A000001Q');
+  assert.equal(new URL(requested).pathname, '/api/empresas/1/produtos/00A00080BZ/precos/00A000001Q');
+});
