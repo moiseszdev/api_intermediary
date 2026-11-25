@@ -87,8 +87,8 @@ jobs:
           export APP_VERSION=$(node -p "require('./package.json').version")
           export GIT_COMMIT="${{ github.sha }}"
           export BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          docker compose --project-name bimer-api build --pull
-          docker compose --project-name bimer-api up -d --remove-orphans
+          docker compose --project-name api_intermediary build --pull
+          docker compose --project-name api_intermediary up -d --remove-orphans --wait bimer-api
 
       - name: Validar saúde da aplicação
         run: |
@@ -98,7 +98,7 @@ jobs:
             fi
             sleep 5
           done
-          docker compose --project-name bimer-api logs --tail=100
+          docker compose --project-name api_intermediary logs --tail=100
           exit 1
 
       - name: Registrar versão implantada

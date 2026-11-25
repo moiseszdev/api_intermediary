@@ -9,6 +9,10 @@ Todas as mudanças relevantes deste projeto são documentadas neste arquivo. O p
 - Tutorial Linux para gerar, conferir, aplicar e rotacionar a chave da API.
 - Procedimento para confirmar versão, revisão Docker e conteúdo do Swagger implantado.
 
+### Corrigido
+
+- Projeto Docker Compose padronizado como `api_intermediary` no deploy automático e nos comandos operacionais.
+
 ## [1.2.0] - 2026-11-25
 
 ### Adicionado

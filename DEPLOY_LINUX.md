@@ -82,13 +82,13 @@ Confira o hash salvo no arquivo e o hash carregado no container:
 
 ```bash
 grep '^API_KEYS_SHA256=' .env
-docker compose --project-name bimer-api exec bimer-api printenv API_KEYS_SHA256
+docker compose --project-name api_intermediary exec bimer-api printenv API_KEYS_SHA256
 ```
 
 Depois de alterar o `.env`, recrie o container; `docker compose restart` não recarrega variáveis:
 
 ```bash
-docker compose --project-name bimer-api up -d --force-recreate
+docker compose --project-name api_intermediary up -d --force-recreate --wait bimer-api
 ```
 
 Teste usando a chave original, nunca o hash:
@@ -116,10 +116,10 @@ Se o Bimer ou SQL Server estiverem em outra rede, corrija rota, VPN e firewall a
 ## 4. Construir e iniciar
 
 ```bash
-docker compose --project-name bimer-api build --pull
-docker compose --project-name bimer-api up -d
-docker compose --project-name bimer-api ps
-docker compose --project-name bimer-api logs -f --tail=100
+docker compose --project-name api_intermediary build --pull
+docker compose --project-name api_intermediary up -d --wait bimer-api
+docker compose --project-name api_intermediary ps
+docker compose --project-name api_intermediary logs -f --tail=100
 ```
 
 O estado SQLite fica no volume Docker `bimer-state` e sobrevive à recriação do container.
@@ -149,10 +149,10 @@ O estoque deve conter apenas `codigoEmpresa` 1 e o setor solicitado.
 ## 6. Operação
 
 ```bash
-docker compose --project-name bimer-api logs -f --tail=200
-docker compose --project-name bimer-api restart
-docker compose --project-name bimer-api down
-docker compose --project-name bimer-api up -d --build
+docker compose --project-name api_intermediary logs -f --tail=200
+docker compose --project-name api_intermediary restart
+docker compose --project-name api_intermediary down
+docker compose --project-name api_intermediary up -d --build --wait bimer-api
 ```
 
 Para backup do SQLite, pare brevemente o serviço e copie o volume, ou use uma ferramenta de backup compatível com SQLite/WAL. Não apague o volume `bimer-state`.
@@ -160,7 +160,7 @@ Para backup do SQLite, pare brevemente o serviço e copie o volume, ou use uma f
 O comando abaixo remove containers e também o volume persistente; não o utilize em operação normal:
 
 ```bash
-docker compose --project-name bimer-api down -v
+docker compose --project-name api_intermediary down -v
 ```
 
 ## 7. Exposição segura
@@ -195,10 +195,10 @@ Transfira os arquivos novos e execute:
 
 ```bash
 cd /opt/bimer-api
-docker compose --project-name bimer-api build --pull
-docker compose --project-name bimer-api up -d --force-recreate
-docker compose --project-name bimer-api ps
-docker compose --project-name bimer-api logs --tail=100
+docker compose --project-name api_intermediary build --pull
+docker compose --project-name api_intermediary up -d --force-recreate --wait bimer-api
+docker compose --project-name api_intermediary ps
+docker compose --project-name api_intermediary logs --tail=100
 curl -fsS http://127.0.0.1:3000/version | jq
 ```
 
@@ -261,9 +261,9 @@ Antes do primeiro deploy automático, valide no servidor:
 cd /opt/bimer-api
 test -f .env
 git pull --ff-only origin main
-docker compose --project-name bimer-api config --quiet
-docker compose --project-name bimer-api build --pull
-docker compose --project-name bimer-api up -d
+docker compose --project-name api_intermediary config --quiet
+docker compose --project-name api_intermediary build --pull
+docker compose --project-name api_intermediary up -d --wait bimer-api
 curl -fsS http://127.0.0.1:3000/health/live
 ```
 
