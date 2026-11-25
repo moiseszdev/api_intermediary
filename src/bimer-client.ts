@@ -54,6 +54,9 @@ export class BimerClient {
   }
   getProduct(id: string) { return this.getWithRetry(`/api/produtos/${encodeURIComponent(id)}`); }
   getProductByCode(code: string) { return this.getWithRetry(`/api/produtos?codigo=${encodeURIComponent(code)}`); }
-  getStock(companyCode: number, productId: string) { return this.getWithRetry(`/api/${companyCode}/produtos/${encodeURIComponent(productId)}/estoque`); }
+  getStock(companyCode: number, productId: string, sectorId?: string) {
+    const query = sectorId ? `?identificadorSetor=${encodeURIComponent(sectorId)}` : '';
+    return this.getWithRetry(`/api/${companyCode}/produtos/${encodeURIComponent(productId)}/estoque${query}`);
+  }
   getChanged(cursor: string, limit: number) { return this.getWithRetry(`/api/produtos/versaoRegistro?versaoRegistro=${encodeURIComponent(cursor)}&itensPorPagina=${limit}`); }
 }

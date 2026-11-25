@@ -118,16 +118,16 @@ O valor de `codigo` é o código comercial, não o identificador interno de dez 
 
 ## 8. Testar autenticação da intermediária
 
-Antes, você também pode consultar o estoque restrito às empresas `1` e `4`:
+Antes, você também pode consultar o estoque restrito à empresa `1` e a um setor explícito:
 
 ```powershell
 Invoke-RestMethod `
-  -Uri 'http://localhost:3000/api/produtos/00A0000001/estoques' `
+  -Uri 'http://localhost:3000/api/produtos/00A0000001/estoques?identificadorSetor=00A0000008' `
   -Headers $headers |
   ConvertTo-Json -Depth 20
 ```
 
-O retorno agrupa os dados por `codigoEmpresa` e nunca consulta outras empresas.
+O retorno informa `codigoEmpresa` e `identificadorSetor` e nunca consulta outras empresas.
 
 Sem chave, a resposta deve ser HTTP `401`:
 
