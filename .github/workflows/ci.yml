@@ -53,7 +53,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Construir imagem
-        run: docker build --tag bimer-integration-api:${{ github.sha }} .
+        run: |
+          APP_VERSION=$(node -p "require('./package.json').version")
+          BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          docker build \
+            --build-arg APP_VERSION="$APP_VERSION" \
+            --build-arg GIT_COMMIT="${{ github.sha }}" \
+            --build-arg BUILD_TIME="$BUILD_TIME" \
+            --tag bimer-integration-api:${{ github.sha }} .
 
   deploy:
     name: Deploy em produção
@@ -77,6 +84,9 @@ jobs:
 
       - name: Construir e atualizar produção
         run: |
+          export APP_VERSION=$(node -p "require('./package.json').version")
+          export GIT_COMMIT="${{ github.sha }}"
+          export BUILD_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           docker compose --project-name bimer-api build --pull
           docker compose --project-name bimer-api up -d --remove-orphans
 
@@ -90,3 +100,6 @@ jobs:
           done
           docker compose --project-name bimer-api logs --tail=100
           exit 1
+
+      - name: Registrar versão implantada
+        run: curl -fsS http://127.0.0.1:3000/version
