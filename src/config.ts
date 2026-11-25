@@ -11,6 +11,7 @@ const schema = z.object({
   BIMER_EXPIRES_IN_UNIT: z.enum(['seconds', 'milliseconds']).default('seconds'),
   ERP_SQL_CONNECTION_STRING: z.string().min(1),
   ERP_CODE_TYPE_ID: z.string().min(1).default('00A0000002'),
+  PARTNER_COMPANY_CODE: z.coerce.number().int().positive().default(1),
   STOCK_COMPANY_CODES: z.string().regex(/^\d+(,\d+)*$/).default('1'),
   STOCK_SECTOR_IDS: z.string().regex(/^[A-Za-z0-9]{10}(,[A-Za-z0-9]{10})*$/).default('00A0000008'),
   PRICE_TABLE_CODE: z.string().min(1).default('01'),

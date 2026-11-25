@@ -2,6 +2,10 @@ services:
   bimer-api:
     build:
       context: .
+      args:
+        APP_VERSION: ${APP_VERSION:-unknown}
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
+        BUILD_TIME: ${BUILD_TIME:-unknown}
     container_name: bimer-api
     restart: unless-stopped
     env_file:
