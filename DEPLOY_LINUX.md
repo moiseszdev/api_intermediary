@@ -38,7 +38,73 @@ SYNC_CURSOR_SEMANTICS_CONFIRMED=false
 
 Use `TrustServerCertificate=true` apenas enquanto o SQL Server utilizar certificado autoassinado. O ideal é instalar uma cadeia confiável e usar `false`.
 
-## 2. Validar a rede
+## 2. Gerar e conferir a chave da API
+
+Entre na pasta que contém o `.env`:
+
+```bash
+cd /opt/bimer-api/api_intermediary
+```
+
+Gere uma chave aleatória e o respectivo SHA-256:
+
+```bash
+chave_api=$(openssl rand -hex 32)
+hash_api=$(printf '%s' "$chave_api" | sha256sum | cut -d ' ' -f1)
+printf 'Chave para o Swagger: %s\nAPI_KEYS_SHA256=%s\n' "$chave_api" "$hash_api"
+```
+
+- Guarde a **chave para o Swagger** em um cofre de senhas. Ela será enviada no header `x-api-key`.
+- Coloque somente o valor de `API_KEYS_SHA256` no `.env`.
+- O hash não permite recuperar a chave original. Se ela for perdida, gere outra e substitua o hash.
+- Não envie a chave original por e-mail, chat ou repositório Git.
+
+Edite o `.env`:
+
+```bash
+nano .env
+```
+
+Exemplo:
+
+```dotenv
+API_KEYS_SHA256=HASH_GERADO_NO_COMANDO_ANTERIOR
+```
+
+Enquanto a sessão atual do terminal estiver aberta, veja novamente a chave original e o hash calculado:
+
+```bash
+printf 'Chave original: %s\n' "$chave_api"
+printf 'Hash calculado: %s\n' "$hash_api"
+```
+
+Confira o hash salvo no arquivo e o hash carregado no container:
+
+```bash
+grep '^API_KEYS_SHA256=' .env
+docker compose --project-name api_intermediary exec bimer-api printenv API_KEYS_SHA256
+```
+
+Depois de alterar o `.env`, recrie o container; `docker compose restart` não recarrega variáveis:
+
+```bash
+docker compose --project-name api_intermediary up -d --force-recreate --wait bimer-api
+```
+
+Teste usando a chave original, nunca o hash:
+
+```bash
+API_KEY=$chave_api
+curl -fsS -H "x-api-key: $API_KEY" http://127.0.0.1:3000/status | jq
+```
+
+Quando terminar e depois de guardar a chave com segurança:
+
+```bash
+unset chave_api hash_api API_KEY
+```
+
+## 3. Validar a rede
 
 ```bash
 getent hosts servidor-bimer
@@ -47,18 +113,18 @@ timeout 5 bash -c '</dev/tcp/192.168.1.165/1433' && echo 'SQL acessível'
 
 Se o Bimer ou SQL Server estiverem em outra rede, corrija rota, VPN e firewall antes de iniciar.
 
-## 3. Construir e iniciar
+## 4. Construir e iniciar
 
 ```bash
-docker compose build --pull
-docker compose up -d
-docker compose ps
-docker compose logs -f --tail=100
+docker compose --project-name api_intermediary build --pull
+docker compose --project-name api_intermediary up -d --wait bimer-api
+docker compose --project-name api_intermediary ps
+docker compose --project-name api_intermediary logs -f --tail=100
 ```
 
 O estado SQLite fica no volume Docker `bimer-state` e sobrevive à recriação do container.
 
-## 4. Testar
+## 5. Testar
 
 ```bash
 curl -fsS http://127.0.0.1:3000/health/live
@@ -80,13 +146,13 @@ curl -fsS \
 
 O estoque deve conter apenas `codigoEmpresa` 1 e o setor solicitado.
 
-## 5. Operação
+## 6. Operação
 
 ```bash
-docker compose logs -f --tail=200
-docker compose restart
-docker compose down
-docker compose up -d --build
+docker compose --project-name api_intermediary logs -f --tail=200
+docker compose --project-name api_intermediary restart
+docker compose --project-name api_intermediary down
+docker compose --project-name api_intermediary up -d --build --wait bimer-api
 ```
 
 Para backup do SQLite, pare brevemente o serviço e copie o volume, ou use uma ferramenta de backup compatível com SQLite/WAL. Não apague o volume `bimer-state`.
@@ -94,10 +160,10 @@ Para backup do SQLite, pare brevemente o serviço e copie o volume, ou use uma f
 O comando abaixo remove containers e também o volume persistente; não o utilize em operação normal:
 
 ```bash
-docker compose down -v
+docker compose --project-name api_intermediary down -v
 ```
 
-## 6. Exposição segura
+## 7. Exposição segura
 
 Mantenha a porta 3000 restrita à rede interna ou ao proxy reverso. Para acesso externo, publique HTTPS em Nginx, Caddy, Traefik ou balanceador e encaminhe para `127.0.0.1:3000`. Não exponha o SQL Server à internet.
 
@@ -123,21 +189,36 @@ server {
 
 Se o acesso for somente interno, limite a porta no firewall ao IP ou à sub-rede consumidora.
 
-## 7. Atualização
+## 8. Atualização e conferência da versão
 
 Transfira os arquivos novos e execute:
 
 ```bash
 cd /opt/bimer-api
-docker compose build --pull
-docker compose up -d
-docker compose ps
-docker compose logs --tail=100
+docker compose --project-name api_intermediary build --pull
+docker compose --project-name api_intermediary up -d --force-recreate --wait bimer-api
+docker compose --project-name api_intermediary ps
+docker compose --project-name api_intermediary logs --tail=100
+curl -fsS http://127.0.0.1:3000/version | jq
+```
+
+Confira também a versão gravada na imagem:
+
+```bash
+docker inspect bimer-api --format '{{ index .Config.Labels "org.opencontainers.image.version" }}'
+docker inspect bimer-api --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}'
+```
+
+Se `/version` estiver correto, mas o Swagger parecer antigo, abra `/docs` em janela anônima ou faça uma recarga forçada. Para verificar sem navegador:
+
+```bash
+curl -fsS http://127.0.0.1:3000/docs/swagger-ui-init.js |
+  grep -E 'api/clientes|pedidos-venda|preco'
 ```
 
 Não habilite `SYNC_CURSOR_SEMANTICS_CONFIRMED=true` até a paginação incremental ser validada. As consultas individuais e o estoque funcionam com a sincronização desativada.
 
-## 8. Deploy automático pelo GitHub Actions
+## 9. Deploy automático pelo GitHub Actions
 
 Use no servidor um usuário de deploy que seja dono da pasta do projeto e tenha permissão para executar Docker. Não use `root` no workflow.
 
@@ -180,9 +261,9 @@ Antes do primeiro deploy automático, valide no servidor:
 cd /opt/bimer-api
 test -f .env
 git pull --ff-only origin main
-docker compose config --quiet
-docker compose build --pull
-docker compose up -d
+docker compose --project-name api_intermediary config --quiet
+docker compose --project-name api_intermediary build --pull
+docker compose --project-name api_intermediary up -d --wait bimer-api
 curl -fsS http://127.0.0.1:3000/health/live
 ```
 
