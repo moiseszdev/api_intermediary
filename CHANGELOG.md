@@ -12,6 +12,7 @@ Todas as mudanças relevantes deste projeto são documentadas neste arquivo. O p
 ### Corrigido
 
 - Projeto Docker Compose padronizado como `api_intermediary` no deploy automático e nos comandos operacionais.
+- Migração controlada do container legado `bimer-api` quando ele pertence a outro projeto Compose, sem remover volumes.
 
 ## [1.2.0] - 2026-11-25
 

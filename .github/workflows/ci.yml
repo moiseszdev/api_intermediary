@@ -82,6 +82,18 @@ jobs:
           test -r /home/moises/bimer-api-production/.env
           ln -sfn /home/moises/bimer-api-production/.env .env
 
+      - name: Migrar container legado do Compose
+        run: |
+          if docker container inspect bimer-api >/dev/null 2>&1; then
+            current_project=$(docker container inspect \
+              --format '{{ index .Config.Labels "com.docker.compose.project" }}' \
+              bimer-api)
+            if [ "$current_project" != "api_intermediary" ]; then
+              echo "Removendo container legado do projeto: ${current_project:-sem-label}"
+              docker container rm --force bimer-api
+            fi
+          fi
+
       - name: Construir e atualizar produção
         run: |
           export APP_VERSION=$(node -p "require('./package.json').version")
