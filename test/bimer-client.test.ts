@@ -38,3 +38,19 @@ test('consulta estoque na rota documentada da empresa e setor', async () => {
   const f = async (input: RequestInfo | URL) => { requested = String(input); return requested.endsWith('/auth/token') ? json({ accessToken: 'a', refreshToken: 'r', expiresIn: 3600 }) : json({ Erros: [], ListaObjetos: [{ QuantidadeDisponivel: 5 }] }); };
   const c = new BimerClient(options(f as typeof fetch)); const result = await c.getStock(1, '00A0000001', '00A0000008'); assert.match(requested, /\/api\/1\/produtos\/00A0000001\/estoque\?identificadorSetor=00A0000008$/); assert.equal(result.listaObjetos.length, 1);
 });
+
+test('consultas de clientes usam somente as rotas oficiais permitidas', async () => {
+  const requested: string[] = [];
+  const f = async (input: RequestInfo | URL) => { const url = String(input); requested.push(url); return url.endsWith('/auth/token') ? json({ accessToken: 'a', refreshToken: 'r', expiresIn: 3600 }) : json({ Erros: [], ListaObjetos: [] }); };
+  const c = new BimerClient(options(f as typeof fetch));
+  await c.getCustomer('00A0000001');
+  await c.getCustomerByDocumentOrExternalCode({ cpfCnpj: '01234567890' });
+  await c.getCustomersByName('Cliente Teste', true);
+  await c.getCustomerByCrmCode('000001');
+  assert.deepEqual(requested.slice(1).map(x => new URL(x).pathname + new URL(x).search), [
+    '/api/pessoas/00A0000001',
+    '/api/pessoas?cpfCnpj=01234567890',
+    '/api/pessoas/porNome?nome=Cliente+Teste&porTrecho=true',
+    '/api/pessoas/codigo/000001'
+  ]);
+});

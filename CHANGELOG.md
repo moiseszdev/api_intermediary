@@ -4,6 +4,10 @@ Todas as mudanças relevantes deste projeto são documentadas neste arquivo. O p
 
 ## [Unreleased]
 
+### Adicionado
+
+- Consultas de clientes por identificador, CPF/CNPJ, código externo, nome e código CRM.
+
 ## [1.1.0] - 2026-11-25
 
 ### Adicionado

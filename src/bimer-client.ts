@@ -54,6 +54,18 @@ export class BimerClient {
   }
   getProduct(id: string) { return this.getWithRetry(`/api/produtos/${encodeURIComponent(id)}`); }
   getProductByCode(code: string) { return this.getWithRetry(`/api/produtos?codigo=${encodeURIComponent(code)}`); }
+  getCustomer(id: string) { return this.getWithRetry(`/api/pessoas/${encodeURIComponent(id)}`); }
+  getCustomerByDocumentOrExternalCode(filters: { cpfCnpj?: string; codigoExterno?: string }) {
+    const query = new URLSearchParams();
+    if (filters.cpfCnpj) query.set('cpfCnpj', filters.cpfCnpj);
+    if (filters.codigoExterno) query.set('codigoExterno', filters.codigoExterno);
+    return this.getWithRetry(`/api/pessoas?${query}`);
+  }
+  getCustomersByName(name: string, partial: boolean) {
+    const query = new URLSearchParams({ nome: name, porTrecho: String(partial) });
+    return this.getWithRetry(`/api/pessoas/porNome?${query}`);
+  }
+  getCustomerByCrmCode(code: string) { return this.getWithRetry(`/api/pessoas/codigo/${encodeURIComponent(code)}`); }
   getStock(companyCode: number, productId: string, sectorId?: string) {
     const query = sectorId ? `?identificadorSetor=${encodeURIComponent(sectorId)}` : '';
     return this.getWithRetry(`/api/${companyCode}/produtos/${encodeURIComponent(productId)}/estoque${query}`);
