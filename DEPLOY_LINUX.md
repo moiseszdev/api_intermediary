@@ -163,6 +163,25 @@ O comando abaixo remove containers e também o volume persistente; não o utiliz
 docker compose --project-name api_intermediary down -v
 ```
 
+### Conflito com o container legado `bimer-api`
+
+Se o deploy informar que o nome `/bimer-api` já está em uso, confira a qual projeto Compose o container pertence:
+
+```bash
+docker container inspect \
+  --format '{{ index .Config.Labels "com.docker.compose.project" }}' \
+  bimer-api
+```
+
+Se o resultado for diferente de `api_intermediary`, remova somente o container legado e recrie o serviço. Essa operação preserva os volumes:
+
+```bash
+docker container rm --force bimer-api
+docker compose --project-name api_intermediary up -d --build --force-recreate --wait bimer-api
+```
+
+Não use `docker compose down -v` para resolver esse conflito, pois a opção `-v` remove o volume persistente.
+
 ## 7. Exposição segura
 
 Mantenha a porta 3000 restrita à rede interna ou ao proxy reverso. Para acesso externo, publique HTTPS em Nginx, Caddy, Traefik ou balanceador e encaminhe para `127.0.0.1:3000`. Não exponha o SQL Server à internet.
