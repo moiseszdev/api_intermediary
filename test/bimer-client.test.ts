@@ -54,3 +54,12 @@ test('consultas de clientes usam somente as rotas oficiais permitidas', async ()
     '/api/pessoas/codigo/000001'
   ]);
 });
+
+test('consulta de pedidos envia empresa fixa e preserva paginação', async () => {
+  let requested = '';
+  const f = async (input: RequestInfo | URL) => { requested = String(input); return requested.endsWith('/auth/token') ? json({ accessToken: 'a', refreshToken: 'r', expiresIn: 3600 }) : json({ Erros: [], ListaObjetos: [], Paginacao: { Pagina: 1 } }); };
+  const c = new BimerClient(options(f as typeof fetch));
+  const result = await c.getSalesOrders({ empresa: '1', status: 'A', limite: '25', pagina: '1' });
+  assert.equal(new URL(requested).pathname + new URL(requested).search, '/api/venda/pedidos/status?empresa=1&status=A&limite=25&pagina=1');
+  assert.equal(result.paginacao.Pagina, 1);
+});

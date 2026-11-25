@@ -7,6 +7,7 @@ Todas as mudanças relevantes deste projeto são documentadas neste arquivo. O p
 ### Adicionado
 
 - Consultas de clientes por identificador, CPF/CNPJ, código externo, nome e código CRM.
+- Consultas de pedidos de venda por identificador e status, restritas à empresa `1`.
 
 ## [1.1.0] - 2026-11-25
 

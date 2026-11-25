@@ -39,12 +39,13 @@ export class BimerClient {
     const r = await this.fetchFn(new URL(path, this.o.baseUrl), { headers: { authorization: `${token.tokenType || 'Bearer'} ${token.accessToken}` }, signal: AbortSignal.timeout(this.o.timeoutMs) });
     if (r.status === 401 && retry401) { this.token = undefined; await this.ensureToken(true); return this.raw(path, false); }
     if (!r.ok) throw new OriginError(`Falha Bimer (${r.status})`, r.status >= 500 || r.status === 429 ? 503 : 502, r.status >= 500 || r.status === 429);
-    const raw = safeJson.parse(await r.text()) as { erros?: unknown[]; listaObjetos?: unknown[]; Erros?: unknown[]; ListaObjetos?: unknown[] };
+    const raw = safeJson.parse(await r.text()) as { erros?: unknown[]; listaObjetos?: unknown[]; Erros?: unknown[]; ListaObjetos?: unknown[]; paginacao?: unknown; Paginacao?: unknown };
     const erros = raw.erros ?? raw.Erros;
     const listaObjetos = raw.listaObjetos ?? raw.ListaObjetos;
     if (erros?.length) throw new BusinessError(erros);
     if (!Array.isArray(listaObjetos)) throw new OriginError('Envelope Bimer inválido');
-    return { erros: erros ?? [], listaObjetos };
+    const paginacao = raw.paginacao ?? raw.Paginacao;
+    return { erros: erros ?? [], listaObjetos, ...(paginacao === undefined ? {} : { paginacao }) };
   }
   async getWithRetry(path: string): Promise<any> {
     for (let attempt = 0; ; attempt++) try { return await this.raw(path); } catch (e) {
@@ -66,6 +67,10 @@ export class BimerClient {
     return this.getWithRetry(`/api/pessoas/porNome?${query}`);
   }
   getCustomerByCrmCode(code: string) { return this.getWithRetry(`/api/pessoas/codigo/${encodeURIComponent(code)}`); }
+  getSalesOrder(id: string) { return this.getWithRetry(`/api/venda/pedidos/${encodeURIComponent(id)}`); }
+  getSalesOrders(filters: Record<string, string>) {
+    return this.getWithRetry(`/api/venda/pedidos/status?${new URLSearchParams(filters)}`);
+  }
   getStock(companyCode: number, productId: string, sectorId?: string) {
     const query = sectorId ? `?identificadorSetor=${encodeURIComponent(sectorId)}` : '';
     return this.getWithRetry(`/api/${companyCode}/produtos/${encodeURIComponent(productId)}/estoque${query}`);
